@@ -17,7 +17,7 @@ def checkIP(location):
 
 def main():
         #assume localhost
-        ip = 'http://127.0.0.1:8080'
+        ip = 'http://127.0.0.1:80'
         return checkIP(ip)
 
      
