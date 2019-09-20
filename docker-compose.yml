@@ -1,4 +1,4 @@
 version: '3'
 services: 
         apache2-1:
-                build: ./
+                build: ./server
