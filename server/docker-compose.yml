@@ -1,9 +1,0 @@
-version: '3'
-services: 
-        apache2-1:
-                build: ./
-                volumes:
-                        - ./src/:/var/www/html/
-                ports:
-                        - 8080:8080
-
