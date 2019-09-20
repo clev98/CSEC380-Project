@@ -3,6 +3,6 @@ services:
         - docker
 before_install:
         - pip install -r  tests/requirements.txt
-        - docker-compose up
+        - docker-compose up -d
 script:
         - pytest
