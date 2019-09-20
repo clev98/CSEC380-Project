@@ -2,7 +2,8 @@ language: python
 services:
         - docker
 before_install:
+        - docker build -t csec380-proj server
+        - docker run -dit --name csec380-proj -p 80:80 csec380-proj
         - pip install -r  tests/requirements.txt
-        - docker-compose up -d
 script:
         - pytest
