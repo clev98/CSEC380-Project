@@ -1,0 +1,15 @@
+version: '3'
+services: 
+    apache2-1:
+        build: ./Application
+        volumes:
+            - ./Application/html/:/usr/local/apache2/htdocs/
+        ports:
+            - 80:80
+        
+    db:
+        build: ./Database
+        restart: always
+        environment:
+            #we're security majors, not secure majors.  Changeme.
+            MYSQL_ROOT_PASSWORD: absolutely_totally_secure
