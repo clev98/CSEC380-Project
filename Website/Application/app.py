@@ -1,6 +1,7 @@
 from flask import Flask, request, session, render_template, url_for, redirect
 import mysql, hashlib
 from mysql import connector
+import os
 
 #CHANGEME
 StaticPath='/var/www/'
@@ -9,7 +10,7 @@ app = Flask(__name__, static_url_path='')
 app.secret_key = os.urandom(24)
 
 #initialize database
-db_connector = mysql.conector.connect(
+db_connector = mysql.connector.connect(
     host="db",
     user="root",
     password="absolutely_totally_secure",
