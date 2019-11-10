@@ -12,7 +12,7 @@ app.secret_key = os.urandom(24)
 #initialize database
 db_connector = mysql.connector.connect(
     host="db",
-    user="root",
+    user="armtube",
     password="absolutely_totally_secure",
     database="Application"
 )
