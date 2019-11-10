@@ -8,11 +8,13 @@ import time
 import logging
 
 #CHANGEME
-StaticPath='/var/www/'
 ID = str(os.urandom(64))
+UPLOAD_FOLDER = '/uploads/'
+ALLOWED_EXTENSIONS = {'mp4', 'webm', 'm4v', 'chaim'}
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.urandom(24)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 #initialize database
 db_connector = mysql.connector.connect(
@@ -21,6 +23,7 @@ db_connector = mysql.connector.connect(
     password="absolutely_totally_secure",
     database="Application"
 )
+db_connector.reconnect(attempts=9, delay=0)
 
 cursor = db_connector.cursor()
 
@@ -60,6 +63,7 @@ def login():
     if(len(result) == 1):
         if(str(result[0]) == hash):
             session["ID"] = ID
+            session["Username"] = username
             response = make_response(redirect(url_for("landing")))
             response.set_cookie("ID", ID)
             return response
@@ -83,10 +87,41 @@ def delete(file):
         pass
 
 #
-@app.route("/video/<file>")
-def video(file):
+@app.route("/upload_link", methods=['POST'])
+def upload_link(file):
+    return render_template()
+
+
+@app.route("/upload", methods=['POST'])
+def upload():
+    logging.warn("start of upload")
     if request.cookies.get("ID") == ID:
-        return render_template()
+        if(request.method == 'GET'):
+            #play video somehow
+            return render_template()
+        elif(request.method == 'POST'):
+            if('file' not in request.files):
+                flash('No file')
+                return redirect(request.url)
+            file = request.files['file']
+            if file.filename == '':
+                flash("No file")
+                return redirect(request.url)
+            if file:
+                filename = file.filename
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                generate_thumbnail = 'ffmpeg -itsoffset -105 -i ' + UPLOAD_FOLDER + '\'' + filename + '\''  + ' -vcodec mjpeg -vframes 1 -an -f rawvideo -s 100x100 ' + UPLOAD_FOLDER + '\'' + filename + '\'' + '.jpg'
+                os.system(generate_thumbnail)
+                query = "INSERT INTO Video_files (Owner, Path_To_Video, Path_To_Thumbnail) VALUES (%s, %s, %s);"
+                data = cursor.execute(query, (session["Username"], filename, filename + '.jpg'))
+                return redirect('/landing')
+            else:
+                logger.warn("REEEEEEEE THIS GETS HIT")
+                return redirect(request.url)
+
+
+
+            
 
 #
 @app.route("/logout")
