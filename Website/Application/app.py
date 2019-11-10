@@ -7,11 +7,13 @@ from os import urandom
 from logging import warning
 
 #CHANGEME
-StaticPath='/var/www/'
 ID = str(urandom(64))
+UPLOAD_FOLDER = '/uploads/'
+ALLOWED_EXTENSIONS = {'mp4', 'webm', 'm4v', 'chaim'}
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = urandom(24)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 #initialize database
 db_connector = connector.connect(
@@ -20,6 +22,7 @@ db_connector = connector.connect(
     password="absolutely_totally_secure",
     database="Application"
 )
+db_connector.reconnect(attempts=9, delay=0)
 
 cursor = db_connector.cursor()
 
@@ -85,6 +88,39 @@ def delete(file):
         return render_template('landing.html', error="Don't delete other's videos!", name=session["Username"])
 
 #
+@app.route("/upload_link", methods=['POST'])
+def upload_link(file):
+    return render_template()
+
+
+@app.route("/upload", methods=['POST'])
+def upload():
+    logging.warn("start of upload")
+    if request.cookies.get("ID") == ID and "ID" in session:
+        if(request.method == 'GET'):
+            #play video somehow
+            return render_template()
+        elif(request.method == 'POST'):
+            if('file' not in request.files):
+                flash('No file')
+                return redirect(request.url)
+            file = request.files['file']
+            if file.filename == '':
+                flash("No file")
+                return redirect(request.url)
+            if file:
+                filename = file.filename
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                generate_thumbnail = 'ffmpeg -itsoffset -105 -i ' + UPLOAD_FOLDER + '\'' + filename + '\''  + ' -vcodec mjpeg -vframes 1 -an -f rawvideo -s 100x100 ' + UPLOAD_FOLDER + '\'' + filename + '\'' + '.jpg'
+                os.system(generate_thumbnail)
+                query = "INSERT INTO Video_files (Owner, Path_To_Video, Path_To_Thumbnail) VALUES (%s, %s, %s);"
+                data = cursor.execute(query, (session["Username"], filename, filename + '.jpg'))
+                return redirect('/landing')
+            else:
+                logger.warn("REEEEEEEE THIS GETS HIT")
+                return redirect(request.url)
+
+
 @app.route("/video/<file>", methods=['GET', 'POST'])
 def video(file):
     if request.cookies.get("ID") == ID and "ID" in session:

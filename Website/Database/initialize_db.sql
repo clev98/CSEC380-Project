@@ -14,7 +14,7 @@ CREATE TABLE User_Login
 );
 CREATE TABLE Video_files
 (
-	Video_ID INT,
+	Video_ID INT AUTO_INCREMENT,
 	Owner VARCHAR(64),
 	Path_To_Video VARCHAR(64),
 	Path_To_Thumbnail VARCHAR(64),

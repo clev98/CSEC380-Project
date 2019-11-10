@@ -42,23 +42,22 @@
 <body>
 
     <h2>Armtube</h2>
-
     <p>
         <a style="float:left; color:black" href="/landing">{{ name }}</a>
         <a style="float:right; color:black" href="/logout">Logout</a>
         <br>
     </p>
 
-    <form action="{{ url_for('landing') }}" method="post" enctype="multipart/form-data">
+    <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
         <div class="container">
-            <label for="cmpfile"><b>Upload From Computer</b></label>
-            <input type="file" placeholder="" name="cmpfile" required>
+            <label for="file"><b>Upload From Computer</b></label>
+            <input type="file" placeholder="" name="file" required>
 
             <button type="submit">Upload File</button>
         </div>
     </form>
 
-    <form action="{{ url_for('landing') }}" method="post">
+    <form action="{{ url_for('upload_link') }}" method="post">
         <div class="container">
             <label for="linkfile"><b>Upload From Link</b></label>
             <input type="text" placeholder="" name="linkfile" required>
