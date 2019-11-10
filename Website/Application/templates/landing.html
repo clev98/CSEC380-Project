@@ -43,7 +43,7 @@
 
     <h2>Armtube</h2>
 
-    <form action="{{ url_for('/upload') }}" method="post" enctype="multipart/form-data">
+    <form action="{{ url_for('landing') }}" method="post" enctype="multipart/form-data">
         <div class="container">
             <label for="cmpfile"><b>Upload From Computer</b></label>
             <input type="file" placeholder="" name="cmpfile" required>
@@ -52,7 +52,7 @@
         </div>
     </form>
 
-    <form action="{{ url_for('/upload') }}" method="post">
+    <form action="{{ url_for('landing') }}" method="post">
         <div class="container">
             <label for="linkfile"><b>Upload From Link</b></label>
             <input type="text" placeholder="" name="linkfile" required>

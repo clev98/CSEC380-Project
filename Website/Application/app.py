@@ -1,15 +1,15 @@
-from flask import Flask, request, session, render_template, url_for, redirect
+from flask import Flask, request, session, render_template, url_for, redirect, flash
 import mysql, hashlib
 from mysql import connector
 import os
 import time
+import logging
 
 #CHANGEME
 StaticPath='/var/www/'
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.urandom(24)
-time.sleep(10)
 
 #initialize database
 db_connector = mysql.connector.connect(
@@ -40,22 +40,25 @@ def login():
     password = request.values.get('password')
 
     # Get the salt
-    query = "SELECT salt FROM User_Login WHERE Username LIKE (%s);"
+    query = "SELECT salt FROM User_Login WHERE Username=(%s);"
     cursor.execute(query, (username,))
     salt = cursor.fetchone()
 
     # hash
-    hash = hashlib.sha384((salt[0] + password).encode()).hexdigest()
+    hash = hashlib.sha256((salt[0] + password).encode()).hexdigest()
 
     # Get hash from database
-    query = "SELECT password_hash_salt from User_Login WHERE Username LIKE (%s);"
+    query = "SELECT password_hash_salt FROM User_Login WHERE Username=(%s);"
     data = cursor.execute(query, (username,))
-    result = cursor.fetchall()
+    result = cursor.fetchone()
 
     if(len(result) == 1):
-        if(str(result[0][0]) == hash):
+        logging.warning(username+":"+result[0]+","+hash)
+        if(str(result[0]) == hash):
             session["username"] = username
             return redirect(url_for("landing"))
+        else:
+            return render_template('index.html', error="Invalid Credentials")
     else:
         return render_template('index.html', error="Invalid Credentials")
 
