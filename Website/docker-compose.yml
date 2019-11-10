@@ -15,7 +15,8 @@ services:
             MYSQL_ROOT_PASSWORD: absolutely_totally_secure
     app:
         build: ./Application
-        ports: 5001:5001
+        ports: 
+            - 5001:5001
         links:
             - db
         depends_on:
