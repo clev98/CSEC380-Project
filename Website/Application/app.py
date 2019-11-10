@@ -46,7 +46,9 @@ def login():
     username = request.values.get('username')
     password = request.values.get('password')
 
-    # Get the salt
+    if "'" in username or "'" in password:
+        return render_template('index.html', error="Invalid Credentials")
+
     query = "SELECT salt FROM User_Login WHERE Username=(%s);"
     cursor.execute(query, (username,))
     salt = cursor.fetchone()
