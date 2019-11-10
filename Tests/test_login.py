@@ -6,7 +6,7 @@ def checkValid():
         return True
     else:
         return False
-def checkInvalid():
+def checkInvalidPassword():
     r = requests.post("http://localhost:5000/login", data = {'username' : 'chaim', 'password': 'notapassword'})
     if(r.url == "http://localhost:5000/landing"):
         return False
@@ -14,11 +14,19 @@ def checkInvalid():
         return True
     return False
 
+def checkInvalidUser():
+    r = requests.post("http://localhost:5000/login", data = {'username' : 'notchaim', 'password': 'password'})
+    if(r.url == "http://localhost:5000/landing"):
+        return False
+    elif(r.url == "http://localhost:5000/login"):
+        return True
+    return False
+
 def main():
-        if(checkValid() and checkInvalid):
-            return True
-        else:
-            return False
+    if(checkValid() and checkInvalidUser() and checkInvalidPassword()):
+        return True
+    else:
+        return False
 
 def test_server_online():
     assert main() == True
