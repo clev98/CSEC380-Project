@@ -4,9 +4,10 @@ services:
 before_install:
         - docker build -t csec380-proj TestWebsite
         - docker run -dit --name csec380-proj -p 80:80 csec380-proj
-        - pip install -r  Tests/requirements.txt
+        - pip install -r Tests/requirements.txt
         - cd Website
-        - docker-compose build
+        - docker-compose build 
         - docker-compose up -d
+        - cd ..
 script:
         - pytest
