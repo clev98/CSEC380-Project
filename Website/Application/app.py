@@ -1,4 +1,6 @@
-from flask import Flask, request, session, render_template, url_for, redirect, flash
+from flask import Flask, request, session, render_template, url_for, redirect, make_response
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import mysql, hashlib
 from mysql import connector
 import os
@@ -7,6 +9,7 @@ import logging
 
 #CHANGEME
 StaticPath='/var/www/'
+ID = str(os.urandom(64))
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.urandom(24)
@@ -34,6 +37,8 @@ def root():
     return render_template('index.html')
 
 #
+limiter = Limiter(app, key_func=get_remote_address)
+@limiter.limit("1440/day;60/hour;10/minute")
 @app.route("/login", methods=['POST'])
 def login():
     username = request.values.get('username')
@@ -54,8 +59,10 @@ def login():
 
     if(len(result) == 1):
         if(str(result[0]) == hash):
-            session["username"] = username
-            return redirect(url_for("landing"))
+            session["ID"] = ID
+            response = make_response(redirect(url_for("landing")))
+            response.set_cookie("ID", ID)
+            return response
         else:
             return render_template('index.html', error="Invalid Credentials")
     else:
@@ -64,29 +71,34 @@ def login():
 #
 @app.route("/landing")
 def landing():
-    return render_template('landing.html')
+    if request.cookies.get("ID") == ID:
+        return render_template('landing.html')
+    else:
+        return render_template('index.html', error="Invalid Credentials")
 
 #
 @app.route("/delete/<file>")
 def delete(file):
-    pass
+    if request.cookies.get("ID") == ID:
+        pass
 
 #
 @app.route("/video/<file>")
 def video(file):
-    if "username" in session:
+    if request.cookies.get("ID") == ID:
         return render_template()
 
 #
 @app.route("/logout")
 def logout():
-    session.pop("username", None)
-    return redirect(url_for("index"))
+    if request.cookies.get("ID") == ID:
+        session.pop("ID", None)
+        return redirect(url_for("index"))
 
 #
 @app.route("/getSession")
 def getSession():
-    if "username" in session:
+    if request.cookies.get("ID") == ID:
         return session
     return None
 
