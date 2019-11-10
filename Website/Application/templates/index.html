@@ -43,13 +43,13 @@
 
     <h2>Armtube</h2>
 
-    <form action="{{ url_for('/login') }}" method="post">
+    <form action="{{ url_for('login') }}" method="post">
         <div class="container">
-            <label for="uname"><b>Username</b></label>
-            <input type="text" placeholder="Username" name="uname" required>
+            <label for="username"><b>Username</b></label>
+            <input type="text" placeholder="Username" name="username" required>
 
-            <label for="psw"><b>Password</b></label>
-            <input type="password" placeholder="Password" name="psw" required>
+            <label for="password"><b>Password</b></label>
+            <input type="password" placeholder="Password" name="password" required>
 
             <button type="submit">Login</button>
         </div>
