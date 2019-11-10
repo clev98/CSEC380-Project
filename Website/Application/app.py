@@ -41,15 +41,16 @@ def login():
     salt = cursor.fetchone()
 
     # hash
-    hash = hashlib.sha3((salt + password).encode()).hexdigest()
+    hash = hashlib.sha3((StaticSalt + password).encode()).hexdigest()
 
     # Get hash from database
-    cursor.execute("SELECT password_hash_salt FROM User_Login WHERE Username LIKE %s;", username)
-    result = cursor.fetchone()
-
-    if(str(result) == hash):
-        session["username"] = username
-        return redirect(url_for("landing"))
+    query = "SELECT password_hash_salt from User_Login WHERE Username LIKE (%s);"
+    data = cursor.execute(query, (user,))
+    result = cursor.fetchall()
+    if(len(result) == 1):
+        if(str(result[0][0]) == hash):
+            session["username"] = username
+            return redirect(url_for("landing"))
     else:
         error = "Invalid Credentials"
         return render_template('index.html', error=error)
