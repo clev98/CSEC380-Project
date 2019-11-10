@@ -1,2 +1,2 @@
-Flask
-mysql-connector
+flask==1.1.1
+mysql-connector=2.2.9
