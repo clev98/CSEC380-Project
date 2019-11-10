@@ -42,6 +42,11 @@
 <body>
 
     <h2>Armtube</h2>
+    <p>
+        <a style="float:left; color:black" href="/landing">{{ name }}</a>
+        <a style="float:right; color:black" href="/logout">Logout</a>
+        <br>
+    </p>
 
     <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
         <div class="container">
@@ -61,11 +66,13 @@
         </div>
     </form>
 
+    <p>{{ error }}</p>
+
     <section class="row">
         {% for video in videos %}
         <section class="col-md-4 col-sm-6 style="background-color: cornflowerblue;">
             <p>
-                {{ video[1] }}: <a href="{{ url_for('static', filename = video[0] )}}"> {{ video[0] }}</a>
+                {{ video[1] }}: <a href="{{ url_for('video', filename = video[0] )}}"> {{ video[0] }}</a>
                 <a href="{{ url_for('delete', filename = video[0]) }}" method="POST">
                     <img border="0" alt="delete" src="static/images/trash.png" width="15" height="15">
                 </a>
@@ -73,17 +80,5 @@
         </section>
         {% endfor %}
     </section>
-    <div class="container-fluid" style="min-height:100% width:80%">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-warning alert-dismissible" role="alert">
-            {{message}}
-        </div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
-    </div>
-
 </body>
 </html>
