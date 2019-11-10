@@ -53,7 +53,6 @@ def login():
     result = cursor.fetchone()
 
     if(len(result) == 1):
-        logging.warning(username+":"+result[0]+","+hash)
         if(str(result[0]) == hash):
             session["username"] = username
             return redirect(url_for("landing"))
