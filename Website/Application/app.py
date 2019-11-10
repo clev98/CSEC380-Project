@@ -1,21 +1,20 @@
-from flask import Flask, request, session, render_template, url_for, redirect, make_response
+from flask import Flask, request, session, render_template, redirect, make_response
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import mysql, hashlib
+from hashlib import sha256
 from mysql import connector
-import os
-import time
-import logging
+from os import urandom
+from logging import warning
 
 #CHANGEME
 StaticPath='/var/www/'
-ID = str(os.urandom(64))
+ID = str(urandom(64))
 
 app = Flask(__name__, template_folder='templates')
-app.secret_key = os.urandom(24)
+app.secret_key = urandom(24)
 
 #initialize database
-db_connector = mysql.connector.connect(
+db_connector = connector.connect(
     host="db",
     user="armtube",
     password="absolutely_totally_secure",
@@ -50,7 +49,7 @@ def login():
     salt = cursor.fetchone()
 
     # hash
-    hash = hashlib.sha256((salt[0] + password).encode()).hexdigest()
+    hash = sha256((salt[0] + password).encode()).hexdigest()
 
     # Get hash from database
     query = "SELECT password_hash_salt FROM User_Login WHERE Username=(%s);"
@@ -60,7 +59,8 @@ def login():
     if(len(result) == 1):
         if(str(result[0]) == hash):
             session["ID"] = ID
-            response = make_response(redirect(url_for("landing")))
+            session["Username"] = username
+            response = make_response(render_template('landing.html', name=session["Username"]))
             response.set_cookie("ID", ID)
             return response
         else:
@@ -69,38 +69,36 @@ def login():
         return render_template('index.html', error="Invalid Credentials")
 
 #
-@app.route("/landing")
+@app.route("/landing", methods=['GET'])
 def landing():
-    if request.cookies.get("ID") == ID:
-        return render_template('landing.html')
+    if request.cookies.get("ID") == ID and "ID" in session:
+        return render_template('landing.html', name=session["Username"])
     else:
         return render_template('index.html', error="Invalid Credentials")
 
 #
-@app.route("/delete/<file>")
+@app.route("/delete/<file>", methods=['POST'])
 def delete(file):
-    if request.cookies.get("ID") == ID:
+    if request.cookies.get("ID") == ID and "ID" in session:
         pass
+    else:
+        return render_template('landing.html', error="Don't delete other's videos!", name=session["Username"])
 
 #
-@app.route("/video/<file>")
+@app.route("/video/<file>", methods=['GET', 'POST'])
 def video(file):
-    if request.cookies.get("ID") == ID:
+    if request.cookies.get("ID") == ID and "ID" in session:
         return render_template()
 
 #
-@app.route("/logout")
+@app.route("/logout", methods=['GET'])
 def logout():
-    if request.cookies.get("ID") == ID:
+    if request.cookies.get("ID") == ID and "ID" in session:
         session.pop("ID", None)
-        return redirect(url_for("index"))
-
-#
-@app.route("/getSession")
-def getSession():
-    if request.cookies.get("ID") == ID:
-        return session
-    return None
+        session.pop("Username", None)
+        return render_template('index.html', error="Logged Out")
+    else:
+        return render_template('index.html', error="Invalid Credentials")
 
 #
 if __name__ == "__main__":
