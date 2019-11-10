@@ -51,6 +51,9 @@ def login():
     cursor.execute(query, (username,))
     salt = cursor.fetchone()
 
+    if salt == None:
+        return render_template('index.html', error="Invalid Credentials")
+
     # hash
     hash = sha256((salt[0] + password).encode()).hexdigest()
 
@@ -63,7 +66,7 @@ def login():
         if(str(result[0]) == hash):
             session["ID"] = ID
             session["Username"] = username
-            response = make_response(render_template('landing.html', name=session["Username"]))
+            response = make_response(redirect('landing'))
             response.set_cookie("ID", ID)
             return response
         else:
@@ -95,7 +98,6 @@ def upload_link(file):
 
 @app.route("/upload", methods=['POST'])
 def upload():
-    logging.warn("start of upload")
     if request.cookies.get("ID") == ID and "ID" in session:
         if(request.method == 'GET'):
             #play video somehow
@@ -117,7 +119,6 @@ def upload():
                 data = cursor.execute(query, (session["Username"], filename, filename + '.jpg'))
                 return redirect('/landing')
             else:
-                logger.warn("REEEEEEEE THIS GETS HIT")
                 return redirect(request.url)
 
 
