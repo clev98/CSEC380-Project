@@ -5,11 +5,13 @@ from hashlib import sha256
 from mysql import connector
 from os import urandom
 from logging import warning
+import urllib
+import os
 
 #CHANGEME
 ID = str(urandom(64))
 UPLOAD_FOLDER = '/uploads/'
-ALLOWED_EXTENSIONS = {'mp4', 'webm', 'm4v', 'chaim'}
+ALLOWED_EXTENSIONS = {'mp4', 'webm', 'm4v', 'mkv', 'chaim'}
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = urandom(24)
@@ -46,7 +48,7 @@ def login():
     username = request.values.get('username')
     password = request.values.get('password')
 
-    if "'" in username or "'" in password:
+    if "'" in username or ";" in username:
         return render_template('index.html', error="Invalid Credentials")
 
     query = "SELECT salt FROM User_Login WHERE Username=(%s);"
@@ -94,17 +96,24 @@ def delete(file):
 
 #
 @app.route("/upload_link", methods=['POST'])
-def upload_link(file):
-    return render_template()
+def upload_link():
+    if request.cookies.get("ID") == ID and "ID" in session:
+        if 'linkfile' in request.form:
+            filename = request.form["linkfile"].split("/")[-1]
+            urllib.request.urlretrieve(request.form["linkfile"], os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            query = "INSERT INTO Video_files (Owner, Path_To_Video) VALUES (%s, %s);"
+            data = cursor.execute(query, (session["Username"], filename))
+            db_connector.commit()
+            return redirect('/landing')
+        else:
+            return redirect('/landing_this_doesnt_exist.html')
+    return redirect('/landing')
 
 
 @app.route("/upload", methods=['POST'])
 def upload():
     if request.cookies.get("ID") == ID and "ID" in session:
-        if(request.method == 'GET'):
-            #play video somehow
-            return render_template()
-        elif(request.method == 'POST'):
+        if(request.method == 'POST'):
             if('file' not in request.files):
                 flash('No file')
                 return redirect(request.url)
@@ -115,10 +124,9 @@ def upload():
             if file:
                 filename = file.filename
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                generate_thumbnail = 'ffmpeg -itsoffset -105 -i ' + UPLOAD_FOLDER + '\'' + filename + '\''  + ' -vcodec mjpeg -vframes 1 -an -f rawvideo -s 100x100 ' + UPLOAD_FOLDER + '\'' + filename + '\'' + '.jpg'
-                os.system(generate_thumbnail)
-                query = "INSERT INTO Video_files (Owner, Path_To_Video, Path_To_Thumbnail) VALUES (%s, %s, %s);"
-                data = cursor.execute(query, (session["Username"], filename, filename + '.jpg'))
+                query = "INSERT INTO Video_files (Owner, Path_To_Video) VALUES (%s, %s);"
+                data = cursor.execute(query, (session["Username"], filename))
+                db_connector.commit()
                 return redirect('/landing')
             else:
                 return redirect(request.url)
