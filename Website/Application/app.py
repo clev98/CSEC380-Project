@@ -1,16 +1,15 @@
-from flask import Flask, request, session, render_template, redirect, make_response
+from flask import Flask, request, session, url_for, render_template, redirect, make_response
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from hashlib import sha256
 from mysql import connector
-from os import urandom
+from os import urandom, path, system, listdir
 from logging import warning
-import urllib
-import os
+from urllib.parse import quote
 
 #CHANGEME
 ID = str(urandom(64))
-UPLOAD_FOLDER = '/uploads/'
+UPLOAD_FOLDER = "/static/videos/"
 ALLOWED_EXTENSIONS = {'mp4', 'webm', 'm4v', 'mkv', 'chaim'}
 
 app = Flask(__name__, template_folder='templates')
@@ -47,10 +46,6 @@ limiter = Limiter(app, key_func=get_remote_address)
 def login():
     username = request.values.get('username')
     password = request.values.get('password')
-
-    if "'" in username or ";" in username:
-        return render_template('index.html', error="Invalid Credentials")
-
     query = "SELECT salt FROM User_Login WHERE Username=(%s);"
     cursor.execute(query, (username,))
     salt = cursor.fetchone()
@@ -82,7 +77,18 @@ def login():
 @app.route("/landing", methods=['GET'])
 def landing():
     if request.cookies.get("ID") == ID and "ID" in session:
-        return render_template('landing.html', name=session["Username"])
+        videos = []
+
+        for video in listdir("/static/videos"):
+            query = "SELECT * FROM Video_files WHERE Path_To_Video=(%s)"  
+            data = cursor.execute(query, (video,))
+            owner = cursor.fetchone()
+
+            if owner is not None:
+                owner = owner[1]
+                videos.append((video, owner))
+
+        return render_template('landing.html', name=session["Username"], videos=videos)
     else:
         return render_template('index.html', error="Invalid Credentials")
 
@@ -90,7 +96,7 @@ def landing():
 @app.route("/delete/<file>", methods=['POST'])
 def delete(file):
     if request.cookies.get("ID") == ID and "ID" in session:
-        pass
+        warning("Deleting video")
     else:
         return render_template('landing.html', error="Don't delete other's videos!", name=session["Username"])
 
@@ -135,7 +141,9 @@ def upload():
 @app.route("/video/<file>", methods=['GET', 'POST'])
 def video(file):
     if request.cookies.get("ID") == ID and "ID" in session:
-        return render_template()
+        return render_template("viewVideo.html", name=file)
+    else:
+        return render_template('index.html', error="Invalid Credentials")
 
 #
 @app.route("/logout", methods=['GET'])
