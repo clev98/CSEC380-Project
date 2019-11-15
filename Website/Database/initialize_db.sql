@@ -17,7 +17,6 @@ CREATE TABLE Video_files
 	Video_ID INT AUTO_INCREMENT,
 	Owner VARCHAR(255),
 	Path_To_Video VARCHAR(255),
-	Path_To_Thumbnail VARCHAR(255),
 	PRIMARY KEY(Video_ID)
 );
 
