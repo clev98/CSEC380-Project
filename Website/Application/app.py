@@ -25,7 +25,7 @@ db_connector = connector.connect(
 )
 db_connector.reconnect(attempts=9, delay=0)
 
-cursor = db_connector.cursor()
+cursor = db_connector.cursor(buffered=True)
 
 #
 def get_file(filename):
@@ -106,7 +106,7 @@ def upload_link():
     if request.cookies.get("ID") == ID and "ID" in session:
         if 'linkfile' in request.form:
             filename = request.form["linkfile"].split("/")[-1]
-            urllib.request.urlretrieve(request.form["linkfile"], os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            urllib.request.urlretrieve(request.form["linkfile"], path.join(app.config['UPLOAD_FOLDER'], filename))
             query = "INSERT INTO Video_files (Owner, Path_To_Video) VALUES (%s, %s);"
             data = cursor.execute(query, (session["Username"], filename))
             db_connector.commit()
@@ -129,7 +129,7 @@ def upload():
                 return redirect(request.url)
             if file:
                 filename = file.filename
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                file.save(path.join(app.config['UPLOAD_FOLDER'], filename))
                 query = "INSERT INTO Video_files (Owner, Path_To_Video) VALUES (%s, %s);"
                 data = cursor.execute(query, (session["Username"], filename))
                 db_connector.commit()
@@ -141,7 +141,7 @@ def upload():
 @app.route("/video/<file>", methods=['GET', 'POST'])
 def video(file):
     if request.cookies.get("ID") == ID and "ID" in session:
-        return render_template("viewVideo.html", name=file)
+        return render_template("viewVideo.html", file="/static/videos/"+file, name=file)
     else:
         return render_template('index.html', error="Invalid Credentials")
 

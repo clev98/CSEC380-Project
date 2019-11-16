@@ -95,7 +95,7 @@
             <section>
                 <p>
                     <br />
-                    {{ video[1] }}: <a href="{{ url_for('video', file = "static/videos/"+video[0]) }}">{{ video[0] }}</a>
+                    {{ video[1] }}: <a href="{{ url_for('video', file = video[0]) }}">{{ video[0] }}</a>
                     <a href="{{ url_for('delete', file = video[0]) }}" method="post">
                         <img border="0" alt="delete" src="/static/images/trash.png" width="15" height="15">
                     </a>
