@@ -21,4 +21,5 @@ CREATE TABLE Video_files
 );
 
 INSERT INTO User_Login (Username, salt, password_hash_salt) VALUES ("chaim", "pL41qCFwnagJcZsM", "8c0f5ab2947a5a03c5275599e8b1cff2f7f281d07702a4082fcafa239b621ad8");
-INSERT INTO User_Login (Username, salt, password_hash_salt) VALUES ("test", "ISVe5C3vo_D4wYsp", "e1ebd482659c098aa01de9125195e9e05c01d508960a1cd182e83a8ed88671f2");
+
+INSERT INTO Video_files (Owner, Path_To_Video) VALUE ("chaim", "webapp_is_pain.mp4")

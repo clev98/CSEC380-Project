@@ -6,6 +6,6 @@ COPY /static/ /static/
 COPY server.crt server.key /
 
 RUN pip install -r requirements.txt
-RUN mkdir /static/videos
+#RUN mkdir /static/videos
 
 CMD python app.py

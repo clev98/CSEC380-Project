@@ -85,8 +85,9 @@ def landing():
             owner = cursor.fetchone()
 
             if owner is not None:
+                id = owner[0]
                 owner = owner[1]
-                videos.append((video, owner))
+                videos.append((video, owner, id))
 
         warning(videos)
 
@@ -95,8 +96,8 @@ def landing():
         return render_template('index.html', error="Invalid Credentials")
 
 #
-@app.route("/delete/<file>", methods=['POST'])
-def delete(file):
+@app.route("/delete/<id>", methods=['POST'])
+def delete(id):
     if request.cookies.get("ID") == ID and "ID" in session:
         warning("Deleting video")
     else:
