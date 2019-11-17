@@ -99,10 +99,9 @@ def landing():
 #
 @app.route("/delete/<id>", methods=['GET'])
 def delete(id):
-       query = "SELECT Path_To_Video FROM Video_files WHERE Owner=(%s) AND Video_ID=(%s);"
-       data = cursor.execute(query, (session["Username"], int(id)))
-       result = cursor.fetchone()
-
+    query = "SELECT Path_To_Video FROM Video_files WHERE Owner=(%s) AND Video_ID=(%s);"
+    data = cursor.execute(query, (session["Username"], int(id)))
+    result = cursor.fetchone()
     if request.cookies.get("ID") == ID and "ID" in session and result is not None:
         warning("Deleting video")
         remove(UPLOAD_FOLDER + result[0])
