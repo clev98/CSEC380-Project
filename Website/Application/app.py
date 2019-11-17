@@ -79,7 +79,7 @@ def landing():
     if request.cookies.get("ID") == ID and "ID" in session:
         videos = []
 
-        for video in listdir("/static/videos"):
+        for video in listdir(UPLOAD_FOLDER):
             query = "SELECT * FROM Video_files WHERE Path_To_Video=(%s)"  
             data = cursor.execute(query, (video,))
             owner = cursor.fetchone()
@@ -87,6 +87,8 @@ def landing():
             if owner is not None:
                 owner = owner[1]
                 videos.append((video, owner))
+
+        warning(videos)
 
         return render_template('landing.html', name=session["Username"], videos=videos)
     else:
@@ -157,4 +159,4 @@ def logout():
 
 #
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0", debug=True, ssl_context=('server.crt', 'server.key'))

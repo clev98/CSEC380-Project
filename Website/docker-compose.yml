@@ -16,3 +16,9 @@ services:
             - db
         depends_on:
             - db
+    proxy:
+        build: ./Proxy
+        ports:
+            - 443:443
+        links:
+            - app
