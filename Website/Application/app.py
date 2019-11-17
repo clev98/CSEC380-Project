@@ -3,7 +3,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from hashlib import sha256
 from mysql import connector
-from os import urandom, path, system, listdir
+from os import urandom, path, system, listdir, remove
 from logging import warning
 from urllib.parse import quote
 
@@ -24,6 +24,7 @@ db_connector = connector.connect(
     database="Application"
 )
 db_connector.reconnect(attempts=9, delay=0)
+
 
 cursor = db_connector.cursor(buffered=True)
 
@@ -96,13 +97,22 @@ def landing():
         return render_template('index.html', error="Invalid Credentials")
 
 #
-@app.route("/delete/<id>", methods=['POST'])
+@app.route("/delete/<id>", methods=['GET'])
 def delete(id):
-    if request.cookies.get("ID") == ID and "ID" in session:
+       query = "SELECT Path_To_Video FROM Video_files WHERE Owner=(%s) AND Video_ID=(%s);"
+       data = cursor.execute(query, (session["Username"], int(id)))
+       result = cursor.fetchone()
+
+    if request.cookies.get("ID") == ID and "ID" in session and result is not None:
         warning("Deleting video")
+        remove(UPLOAD_FOLDER + result[0])
+
+        query = "DELETE FROM Video_files WHERE Owner=(%s) AND Video_ID=(%s);"
+        data = cursor.execute(query, (session["Username"], int(id)))
+        db_connector.commit()
+        return redirect('/landing')
     else:
         return render_template('landing.html', error="Don't delete other's videos!", name=session["Username"])
-
 #
 @app.route("/upload_link", methods=['POST'])
 def upload_link():
