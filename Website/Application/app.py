@@ -109,9 +109,7 @@ def delete(id):
         query = "DELETE FROM Video_files WHERE Owner=(%s) AND Video_ID=(%s);"
         data = cursor.execute(query, (session["Username"], int(id)))
         db_connector.commit()
-        return redirect('/landing')
-    else:
-        return render_template('landing.html', error="Don't delete other's videos!", name=session["Username"])
+    return redirect('/landing')
 #
 @app.route("/upload_link", methods=['POST'])
 def upload_link():
