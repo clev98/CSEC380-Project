@@ -6,6 +6,7 @@ from mysql import connector
 from os import urandom, path, system, listdir, remove
 from logging import warning
 from urllib.parse import quote
+from urllib.request import urlretrieve
 
 #CHANGEME
 ID = str(urandom(64))
@@ -116,7 +117,7 @@ def upload_link():
     if request.cookies.get("ID") == ID and "ID" in session:
         if 'linkfile' in request.form:
             filename = request.form["linkfile"].split("/")[-1]
-            urllib.request.urlretrieve(request.form["linkfile"], path.join(app.config['UPLOAD_FOLDER'], filename))
+            urlretrieve(request.form["linkfile"], path.join(app.config['UPLOAD_FOLDER'], filename))
             query = "INSERT INTO Video_files (Owner, Path_To_Video) VALUES (%s, %s);"
             data = cursor.execute(query, (session["Username"], filename))
             db_connector.commit()
