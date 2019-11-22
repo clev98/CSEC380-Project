@@ -51,10 +51,10 @@ def login():
     query = "SELECT salt FROM User_Login WHERE Username=(%s);"
     cursor.execute(query, (username,))
     salt = cursor.fetchone()
-    warning("username = " + username + " password is " + password)
+    #warning("username = " + username + " password is " + password)
 
     if salt == None:
-        warning("no salt: username = " + username + " password is " + password)
+        #warning("no salt: username = " + username + " password is " + password)
         return render_template('index.html', error="Invalid Credentials")
 
     # hash
@@ -93,7 +93,7 @@ def landing():
                 owner = owner[1]
                 videos.append((video, owner, id))
 
-        warning(videos)
+        #warning(videos)
 
         return render_template('landing.html', name=session["Username"], videos=videos)
     else:
