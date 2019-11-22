@@ -2,29 +2,29 @@ import sys, requests, pytest
 
 def checkValid():
     s = requests.Session()
-    r = s.post("http://localhost:5000/login", data={'username' : 'chaim', 'password': 'password'})
+    r = s.post("https://localhost/login", verify=False, data={'username':'chaim', 'password':'password'})
     s.close()
-    if(r.url == "http://localhost:5000/landing"):
+    if(r.url == "https://localhost/landing"):
         return True
     else:
         return False
 def checkInvalidPassword():
     s = requests.Session()
-    r = s.post("http://localhost:5000/login", data = {'username' : 'chaim', 'password': 'notapassword'})
+    r = s.post("https://localhost/login", verify=False, data = {'username':'chaim', 'password':'notapassword'})
     s.close()
-    if(r.url == "http://localhost:5000/landing"):
+    if(r.url == "https://localhost/landing"):
         return False
-    elif(r.url == "http://localhost:5000/login"):
+    elif(r.url == "https://localhost/login"):
         return True
     return False
 
 def checkInvalidUser():
     s = requests.Session()
-    r = s.post("http://localhost:5000/login", data = {'username' : 'notchaim', 'password': 'password'})
+    r = s.post("https://localhost/login", verify=False, data = {'username':'notchaim', 'password':'password'})
     s.close()
-    if(r.url == "http://localhost:5000/landing"):
+    if(r.url == "https://localhost/landing"):
         return False
-    elif(r.url == "http://localhost:5000/login"):
+    elif(r.url == "https://localhost/login"):
         return True
     return False
 

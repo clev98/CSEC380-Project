@@ -56,7 +56,6 @@ def login():
 
     if len(userdat) == 0:
         return render_template('index.html', error="Invalid Credentials: "+str(userdat))
-
     # hash
     hash = sha256((userdat[0][0] + password).encode()).hexdigest()
 
@@ -97,11 +96,23 @@ def delete(id):
     result = cursor.fetchone()
     if request.cookies.get("ID") == ID and "ID" in session and result is not None:
         remove(UPLOAD_FOLDER + result[0])
-
         query = "DELETE FROM Video_files WHERE Owner=(%s) AND Video_ID=(%s);"
         data = cursor.execute(query, (session["Username"], int(id)))
         db_connector.commit()
     return redirect('/landing')
+#
+@app.route("/get_id/<name>", methods=['GET'])
+def get_id(name):
+    if request.cookies.get("ID") == ID and "ID" in session:
+        query = "SELECT Video_ID FROM Video_files WHERE OWNER=(%s) AND Path_To_Video=(%s);"
+        data = cursor.execute(query, (session["Username"], name))
+        result = cursor.fetchone()
+        if(result == None):
+            return{ "id": -1 }
+        else:
+            return { "id": int(result[0]) }
+    else: 
+        return redirect('/login')
 #
 @app.route("/upload_link", methods=['POST'])
 def upload_link():
