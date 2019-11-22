@@ -51,8 +51,10 @@ def login():
     query = "SELECT salt FROM User_Login WHERE Username=(%s);"
     cursor.execute(query, (username,))
     salt = cursor.fetchone()
+    warning("username = " + username + " password is " + password)
 
     if salt == None:
+        warning("no salt: username = " + username + " password is " + password)
         return render_template('index.html', error="Invalid Credentials")
 
     # hash
@@ -106,11 +108,23 @@ def delete(id):
     if request.cookies.get("ID") == ID and "ID" in session and result is not None:
         warning("Deleting video")
         remove(UPLOAD_FOLDER + result[0])
-
         query = "DELETE FROM Video_files WHERE Owner=(%s) AND Video_ID=(%s);"
         data = cursor.execute(query, (session["Username"], int(id)))
         db_connector.commit()
     return redirect('/landing')
+#
+@app.route("/get_id/<name>", methods=['GET'])
+def get_id(name):
+    if request.cookies.get("ID") == ID and "ID" in session:
+        query = "SELECT Video_ID FROM Video_files WHERE OWNER=(%s) AND Path_To_Video=(%s);"
+        data = cursor.execute(query, (session["Username"], name))
+        result = cursor.fetchone()
+        if(result == None):
+            return{ "id": -1 }
+        else:
+            return { "id": int(result[0]) }
+    else: 
+        return redirect('/login')
 #
 @app.route("/upload_link", methods=['POST'])
 def upload_link():
