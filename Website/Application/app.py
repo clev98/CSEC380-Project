@@ -10,7 +10,7 @@ from urllib.parse import quote
 #CHANGEME
 ID = str(urandom(64))
 UPLOAD_FOLDER = "/static/videos/"
-ALLOWED_EXTENSIONS = {'mp4', 'webm', 'm4v', 'mkv', 'chaim'}
+ALLOWED_EXTENSIONS = {'mp4', 'webm', 'ogg', 'chaim'}
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = urandom(24)
@@ -47,32 +47,26 @@ limiter = Limiter(app, key_func=get_remote_address)
 def login():
     username = request.values.get('username')
     password = request.values.get('password')
-    query = "SELECT salt FROM User_Login WHERE Username=(%s);"
-    cursor.execute(query, (username,))
-    salt = cursor.fetchone()
+    query = "SELECT salt,password_hash_salt,Username FROM User_Login WHERE Username='%s';" % username
+    cursor.execute(query)
+    userdat = cursor.fetchall()
+    warning(userdat)
+    warning(query)
 
-    if salt == None:
-        return render_template('index.html', error="Invalid Credentials")
+    if len(userdat) == 0:
+        return render_template('index.html', error="Invalid Credentials: "+str(userdat))
 
     # hash
-    hash = sha256((salt[0] + password).encode()).hexdigest()
+    hash = sha256((userdat[0][0] + password).encode()).hexdigest()
 
-    # Get hash from database
-    query = "SELECT password_hash_salt FROM User_Login WHERE Username=(%s);"
-    data = cursor.execute(query, (username,))
-    result = cursor.fetchone()
-
-    if(len(result) == 1):
-        if(str(result[0]) == hash):
-            session["ID"] = ID
-            session["Username"] = username
-            response = make_response(redirect('landing'))
-            response.set_cookie("ID", ID)
-            return response
-        else:
-            return render_template('index.html', error="Invalid Credentials")
+    if(userdat[0][1] == hash and username == userdat[0][2]):
+        session["ID"] = ID
+        session["Username"] = username
+        response = make_response(redirect('landing'))
+        response.set_cookie("ID", ID)
+        return response
     else:
-        return render_template('index.html', error="Invalid Credentials")
+        return render_template('index.html', error="Invalid Credentials: "+str(userdat))
 
 #
 @app.route("/landing", methods=['GET'])
@@ -90,8 +84,6 @@ def landing():
                 owner = owner[1]
                 videos.append((video, owner, id))
 
-        warning(videos)
-
         return render_template('landing.html', name=session["Username"], videos=videos)
     else:
         return render_template('index.html', error="Invalid Credentials")
@@ -103,7 +95,6 @@ def delete(id):
     data = cursor.execute(query, (session["Username"], int(id)))
     result = cursor.fetchone()
     if request.cookies.get("ID") == ID and "ID" in session and result is not None:
-        warning("Deleting video")
         remove(UPLOAD_FOLDER + result[0])
 
         query = "DELETE FROM Video_files WHERE Owner=(%s) AND Video_ID=(%s);"
