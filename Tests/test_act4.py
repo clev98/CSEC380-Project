@@ -12,13 +12,13 @@ def checkValid():
     if(r.status_code != 200):
         print("failure at 2")
         return False
-    r = s.get("https://localhost/get_id/important_notes.mp4")
+    r = s.get("https://localhost/get_id/important_notes.mp4", verify=False)
     id = json.loads(r.content.decode())['id']
     r = s.get("https://localhost/delete/" + str(id))
     print(str(id))
     print(r.url)
     print(r.content)
-    r = s.get("https://localhost/get_id/important_notes.mp4")
+    r = s.get("https://localhost/get_id/important_notes.mp4", verify=False)
     id = int(json.loads(r.content.decode())['id'])
     print(id)
     if(id != -1):
