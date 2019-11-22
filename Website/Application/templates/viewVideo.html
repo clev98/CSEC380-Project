@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
-<body style="background-color: #87c4c9">
-
+<body>
     <p>
         <a style="float:left; color:black" href="/landing">{{ name }}</a>
         <a style="float:right; color:black" href="/logout">Logout</a>
-        <br>
+        <br/>
     </p>
-
-    <video width="500" controls autoplay>
-        <source src={{ name }} type="video/mp4">
+    <video width="800" controls autoplay style="display: block; margin: 0 auto;">
+        <source src={{ file }} type="video/mp4">
+        <source src={{ file }} type="video/ogg">
+        <source src={{ file }} type="video/webm">
     </video>
 </body>
 </html>

@@ -37,53 +37,72 @@
         .container {
             padding: 16px;
         }
+
+        #form-wrapper {
+            width: 70%;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        #form1 {
+            width: 49%;
+            display: inline-block;
+            min-width: 200px;
+            min-height: 170px;
+        }
+
+        #form2 {
+            width: 49%;
+            display: inline-block;
+            min-width: 200px;
+            min-height: 170px;
+        }
     </style>
 </head>
 <body>
 
     <h2>Armtube</h2>
+    <p>
+        <a style="float:left; color:black" href="/landing">"{{ name |e }}"</a>
+        <a style="float:right; color:black" href="/logout">Logout</a>
+        <br>
+    </p>
+    <div id="form-wrapper">
+        <form style="float:left;" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" id="form1">
+            <div class="container">
+                <label for="file"><b>Upload From Computer</b></label>
+                <input type="file" placeholder="" name="file" required>
 
-    <form action="{{ url_for('landing') }}" method="post" enctype="multipart/form-data">
-        <div class="container">
-            <label for="cmpfile"><b>Upload From Computer</b></label>
-            <input type="file" placeholder="" name="cmpfile" required>
+                <button type="submit">Upload File</button>
+            </div>
+        </form>
 
-            <button type="submit">Upload File</button>
-        </div>
-    </form>
+        <form style="float:right;" action="{{ url_for('upload_link') }}" method="post" id="form2">
+            <div class="container">
+                <label for="linkfile"><b>Upload From Link</b></label>
+                <input type="text" placeholder="" name="linkfile" required>
 
-    <form action="{{ url_for('landing') }}" method="post">
-        <div class="container">
-            <label for="linkfile"><b>Upload From Link</b></label>
-            <input type="text" placeholder="" name="linkfile" required>
-
-            <button type="submit">Upload Link</button>
-        </div>
-    </form>
-
-    <section class="row">
-        {% for video in videos %}
-        <section class="col-md-4 col-sm-6 style="background-color: cornflowerblue;">
-            <p>
-                {{ video[1] }}: <a href="{{ url_for('static', filename = video[0] )}}"> {{ video[0] }}</a>
-                <a href="{{ url_for('delete', filename = video[0]) }}" method="POST">
-                    <img border="0" alt="delete" src="static/images/trash.png" width="15" height="15">
-                </a>
-            </p>
-        </section>
-        {% endfor %}
-    </section>
-    <div class="container-fluid" style="min-height:100% width:80%">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-warning alert-dismissible" role="alert">
-            {{message}}
-        </div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
+                <button type="submit">Upload Link</button>
+            </div>
+        </form>
     </div>
 
+    <p>{{ error }}</p>
+    <br/>
+
+    <div>
+        <section class="row">
+            {% for video in videos %}
+            <section>
+                <p>
+                    {{ video[1] }}: <a href="{{ url_for('video', file = video[0]) }}">{{ video[0] }}</a>
+                    <a href="{{ url_for('delete', id = video[2]) }}" method="post">
+                        <img border="0" alt="delete" src="/static/images/trash.png" width="15" height="15">
+                    </a>
+                </p>
+            </section>
+            {% endfor %}
+        </section>
+    </div>
 </body>
 </html>

@@ -1,28 +1,33 @@
-from flask import Flask, request, session, render_template, url_for, redirect, make_response
+from flask import Flask, request, session, url_for, render_template, redirect, make_response
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import mysql, hashlib
+from hashlib import sha256
 from mysql import connector
-import os
-import time
-import logging
+from os import urandom, path, system, listdir, remove
+from logging import warning
+from urllib.parse import quote
+from urllib.request import urlretrieve
 
 #CHANGEME
-StaticPath='/var/www/'
-ID = str(os.urandom(64))
+ID = str(urandom(64))
+UPLOAD_FOLDER = "/static/videos/"
+ALLOWED_EXTENSIONS = {'mp4', 'webm', 'ogg', 'chaim'}
 
 app = Flask(__name__, template_folder='templates')
-app.secret_key = os.urandom(24)
+app.secret_key = urandom(24)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 #initialize database
-db_connector = mysql.connector.connect(
+db_connector = connector.connect(
     host="db",
     user="armtube",
     password="absolutely_totally_secure",
     database="Application"
 )
+db_connector.reconnect(attempts=9, delay=0)
 
-cursor = db_connector.cursor()
+
+cursor = db_connector.cursor(buffered=True)
 
 #
 def get_file(filename):
@@ -43,65 +48,126 @@ limiter = Limiter(app, key_func=get_remote_address)
 def login():
     username = request.values.get('username')
     password = request.values.get('password')
+    query = "SELECT salt,password_hash_salt,Username FROM User_Login WHERE Username='%s';" % username
+    cursor.execute(query)
+    userdat = cursor.fetchall()
+    warning(userdat)
+    warning(query)
 
-    # Get the salt
-    query = "SELECT salt FROM User_Login WHERE Username=(%s);"
-    cursor.execute(query, (username,))
-    salt = cursor.fetchone()
-
+    if len(userdat) == 0:
+        return render_template('index.html', error="Invalid Credentials: "+str(userdat))
     # hash
-    hash = hashlib.sha256((salt[0] + password).encode()).hexdigest()
+    hash = sha256((userdat[0][0] + password).encode()).hexdigest()
 
-    # Get hash from database
-    query = "SELECT password_hash_salt FROM User_Login WHERE Username=(%s);"
-    data = cursor.execute(query, (username,))
-    result = cursor.fetchone()
-
-    if(len(result) == 1):
-        if(str(result[0]) == hash):
-            session["ID"] = ID
-            response = make_response(redirect(url_for("landing")))
-            response.set_cookie("ID", ID)
-            return response
-        else:
-            return render_template('index.html', error="Invalid Credentials")
+    if(userdat[0][1] == hash and username == userdat[0][2]):
+        session["ID"] = ID
+        session["Username"] = username
+        response = make_response(redirect('landing'))
+        response.set_cookie("ID", ID)
+        return response
     else:
-        return render_template('index.html', error="Invalid Credentials")
+        return render_template('index.html', error="Invalid Credentials: "+str(userdat))
 
 #
-@app.route("/landing")
+@app.route("/landing", methods=['GET'])
 def landing():
-    if request.cookies.get("ID") == ID:
-        return render_template('landing.html')
+    if request.cookies.get("ID") == ID and "ID" in session:
+        videos = []
+
+        for video in listdir(UPLOAD_FOLDER):
+            query = "SELECT * FROM Video_files WHERE Path_To_Video=(%s)"  
+            data = cursor.execute(query, (video,))
+            owner = cursor.fetchone()
+
+            if owner is not None:
+                id = owner[0]
+                owner = owner[1]
+                videos.append((video, owner, id))
+
+        return render_template('landing.html', name=session["Username"], videos=videos)
     else:
         return render_template('index.html', error="Invalid Credentials")
 
 #
-@app.route("/delete/<file>")
-def delete(file):
-    if request.cookies.get("ID") == ID:
-        pass
-
+@app.route("/delete/<id>", methods=['GET'])
+def delete(id):
+    query = "SELECT Path_To_Video FROM Video_files WHERE Owner=(%s) AND Video_ID=(%s);"
+    data = cursor.execute(query, (session["Username"], int(id)))
+    result = cursor.fetchone()
+    if request.cookies.get("ID") == ID and "ID" in session and result is not None:
+        remove(UPLOAD_FOLDER + result[0])
+        query = "DELETE FROM Video_files WHERE Owner=(%s) AND Video_ID=(%s);"
+        data = cursor.execute(query, (session["Username"], int(id)))
+        db_connector.commit()
+    return redirect('/landing')
 #
-@app.route("/video/<file>")
+@app.route("/get_id/<name>", methods=['GET'])
+def get_id(name):
+    if request.cookies.get("ID") == ID and "ID" in session:
+        query = "SELECT Video_ID FROM Video_files WHERE OWNER=(%s) AND Path_To_Video=(%s);"
+        data = cursor.execute(query, (session["Username"], name))
+        result = cursor.fetchone()
+        if(result == None):
+            return{ "id": -1 }
+        else:
+            return { "id": int(result[0]) }
+    else: 
+        return redirect('/login')
+#
+@app.route("/upload_link", methods=['POST'])
+def upload_link():
+    if request.cookies.get("ID") == ID and "ID" in session:
+        if 'linkfile' in request.form:
+            filename = request.form["linkfile"].split("/")[-1]
+            urlretrieve(request.form["linkfile"], path.join(app.config['UPLOAD_FOLDER'], filename))
+            query = "INSERT INTO Video_files (Owner, Path_To_Video) VALUES (%s, %s);"
+            data = cursor.execute(query, (session["Username"], filename))
+            db_connector.commit()
+            return redirect('/landing')
+        else:
+            return redirect('/landing_this_doesnt_exist.html')
+    return redirect('/landing')
+
+
+@app.route("/upload", methods=['POST'])
+def upload():
+    if request.cookies.get("ID") == ID and "ID" in session:
+        if(request.method == 'POST'):
+            if('file' not in request.files):
+                flash('No file')
+                return redirect(request.url)
+            file = request.files['file']
+            if file.filename == '':
+                flash("No file")
+                return redirect(request.url)
+            if file:
+                filename = file.filename
+                file.save(path.join(app.config['UPLOAD_FOLDER'], filename))
+                query = "INSERT INTO Video_files (Owner, Path_To_Video) VALUES (%s, %s);"
+                data = cursor.execute(query, (session["Username"], filename))
+                db_connector.commit()
+                return redirect('/landing')
+            else:
+                return redirect(request.url)
+
+
+@app.route("/video/<file>", methods=['GET', 'POST'])
 def video(file):
-    if request.cookies.get("ID") == ID:
-        return render_template()
+    if request.cookies.get("ID") == ID and "ID" in session:
+        return render_template("viewVideo.html", file="/static/videos/"+file, name=file)
+    else:
+        return render_template('index.html', error="Invalid Credentials")
 
 #
-@app.route("/logout")
+@app.route("/logout", methods=['GET'])
 def logout():
-    if request.cookies.get("ID") == ID:
+    if request.cookies.get("ID") == ID and "ID" in session:
         session.pop("ID", None)
-        return redirect(url_for("index"))
-
-#
-@app.route("/getSession")
-def getSession():
-    if request.cookies.get("ID") == ID:
-        return session
-    return None
+        session.pop("Username", None)
+        return render_template('index.html', error="Logged Out")
+    else:
+        return render_template('index.html', error="Invalid Credentials")
 
 #
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0", debug=True, ssl_context=('server.crt', 'server.key'))
