@@ -3,7 +3,7 @@ import sys, requests, pytest, json
 #nested elses are disgusting.
 def checkValid():
     s = requests.Session()
-    r = s.post("https://localhost/login", verify=False, data={'username':'chaim', 'password':'password'})
+    r = s.post("https://localhost/login", verify=False, data={'username':'test', 'password':'password'})
     if(r.url == "https://localhost/landing" == False):
         return False
     r = s.post("https://localhost/upload_link",verify=False, data={"linkfile":"https://csec380.sp1kedshell.ninja/important_notes.mp4"})
