@@ -9,7 +9,13 @@ def testClassic():
     return False
 
 def testBlind():
-    return True
+    s = requests.Session()
+    r = s.post("https://localhost/login", data={'username' : "chaim' UNION SELECT * FROM Video_files WHERE 'x'='x", 'password': 'password'}, verify=False)
+    s.close()
+
+    if b"(&#39;1&#39;, &#39;chaim&#39;, &#39;webapp_is_pain.mp4&#39;)" in r.content:
+        return True
+    return False
 
 def testSQLInjection():
     assert testClassic() and testBlind() == True
