@@ -14,7 +14,7 @@ def checkValid():
         return False
     r = s.get("https://localhost/get_id/important_notes.mp4", verify=False)
     id = json.loads(r.content.decode())['id']
-    r = s.get("https://localhost/delete/" + str(id))
+    r = s.get("https://localhost/delete/" + str(id), verify=False)
     print(str(id))
     print(r.url)
     print(r.content)
