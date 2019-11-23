@@ -65,8 +65,10 @@ def login():
         response = make_response(redirect('landing'))
         response.set_cookie("ID", ID)
         return response
-    else:
+    elif len(userdat) > 1:
         return render_template('index.html', error="Invalid Credentials: "+str(userdat))
+    else:
+        return render_template('index.html', error="Invalid Credentials")
 
 #
 @app.route("/landing", methods=['GET'])
