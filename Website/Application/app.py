@@ -121,7 +121,8 @@ def upload_link():
     if request.cookies.get("ID") == ID and "ID" in session:
         if 'linkfile' in request.form:
             filename = request.form["linkfile"].split("/")[-1]
-            urlretrieve(request.form["linkfile"], path.join(app.config['UPLOAD_FOLDER'], filename))
+            system("wget --directory-prefix=" + app.config['UPLOAD_FOLDER'] + " " + request.form["linkfile"])
+            #urlretrieve(request.form["linkfile"], path.join(app.config['UPLOAD_FOLDER'], filename))
             query = "INSERT INTO Video_files (Owner, Path_To_Video) VALUES (%s, %s);"
             data = cursor.execute(query, (session["Username"], filename))
             db_connector.commit()
