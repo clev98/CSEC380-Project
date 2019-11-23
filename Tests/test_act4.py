@@ -28,11 +28,10 @@ def checkValid():
     return True
         
 
-def main():
-    if(checkValid()):
-        return True
-    else:
-        return False
-
+def main_func():
+    return checkValid()
 def test_server_online():
-    assert main() == True
+    assert main_func() == True
+
+
+print(main_func())
