@@ -4,7 +4,7 @@ USE Application;
 CREATE TABLE User_Login
 (
 	Username VARCHAR(255),
-    salt CHAR(16),
+    	salt CHAR(16),
 	password_hash_salt CHAR(64),
 	PRIMARY KEY(Username)
 );
