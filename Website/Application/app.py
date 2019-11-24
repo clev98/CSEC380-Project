@@ -5,7 +5,7 @@ from hashlib import sha256
 from mysql import connector
 from os import urandom, path, system, listdir, remove
 from logging import warning
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 from urllib.request import urlretrieve
 
 #CHANGEME
@@ -24,7 +24,7 @@ db_connector = connector.connect(
     password="absolutely_totally_secure",
     database="Application"
 )
-db_connector.reconnect(attempts=9, delay=0)
+db_connector.reconnect(attempts=10, delay=5)
 
 
 cursor = db_connector.cursor(buffered=True)
@@ -106,8 +106,9 @@ def delete(id):
 @app.route("/get_id/<name>", methods=['GET'])
 def get_id(name):
     if request.cookies.get("ID") == ID and "ID" in session:
-        query = "SELECT Video_ID FROM Video_files WHERE OWNER=(%s) AND Path_To_Video=(%s);"
-        data = cursor.execute(query, (session["Username"], name))
+        query = "SELECT Video_ID FROM Video_files WHERE Path_To_Video='" + unquote(name) + "';"
+        warning(query)
+        data = cursor.execute(query)
         result = cursor.fetchone()
         if(result == None):
             return{ "id": -1 }
