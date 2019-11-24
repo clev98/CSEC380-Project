@@ -8,6 +8,7 @@ before_install:
         - cd Website
         - docker-compose build 
         - docker-compose up -d
+        - sleep 30s
         - cd ..
 script:
         - pytest

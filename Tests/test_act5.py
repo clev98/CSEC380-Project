@@ -24,5 +24,4 @@ def testBlind():
     return False
 
 def testSQLInjection():
-    time.sleep(10)
     assert testClassic() and testBlind() == True
