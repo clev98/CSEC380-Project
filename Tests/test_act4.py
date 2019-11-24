@@ -26,12 +26,6 @@ def checkValid():
         return False
     s.close()
     return True
-        
 
-def main_func():
-    return checkValid()
 def test_server_online():
-    assert main_func() == True
-
-
-print(main_func())
+    assert checkValid() == True

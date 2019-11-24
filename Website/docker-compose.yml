@@ -1,26 +1,28 @@
 version: '3'
 services: 
     db:
+        container_name: flask_db
         build: ./Database
         restart: always
-        environment:
-            #we're security majors, not secure majors.  Changeme.
-            MYSQL_ROOT_PASSWORD: absolutely_totally_secure
-        ports:
-            - 3306:3306
+        networks:
+            - back
     app:
+        container_name: flask_app
         build: ./Application
-        ports: 
-            - 5000:5000
-        links:
-            - db
         depends_on:
             - db
+        networks:
+            - back
     proxy:
         build: ./Proxy
         ports:
             - 443:443
-        links:
-            - app
         depends_on:
+            - db
             - app
+        networks:
+            - front
+            - back
+networks:
+    front:
+    back:

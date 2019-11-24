@@ -1,11 +1,11 @@
-from flask import Flask, request, session, url_for, render_template, redirect, make_response
+from flask import Flask, request, session, url_for, render_template, redirect, make_response, send_file
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from hashlib import sha256
 from mysql import connector
 from os import urandom, path, system, listdir, remove
 from logging import warning
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 from urllib.request import urlretrieve
 
 #CHANGEME
@@ -19,12 +19,12 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 #initialize database
 db_connector = connector.connect(
-    host="db",
-    user="armtube",
+    host="flask_db",
+    user="root",
     password="absolutely_totally_secure",
     database="Application"
 )
-db_connector.reconnect(attempts=9, delay=0)
+db_connector.reconnect(attempts=20, delay=5)
 
 
 cursor = db_connector.cursor(buffered=True)
@@ -51,8 +51,6 @@ def login():
     query = "SELECT salt,password_hash_salt,Username FROM User_Login WHERE Username='%s';" % username
     cursor.execute(query)
     userdat = cursor.fetchall()
-    warning(userdat)
-    warning(query)
 
     if len(userdat) == 0:
         return render_template('index.html', error="Invalid Credentials: "+str(userdat))
@@ -106,8 +104,9 @@ def delete(id):
 @app.route("/get_id/<name>", methods=['GET'])
 def get_id(name):
     if request.cookies.get("ID") == ID and "ID" in session:
-        query = "SELECT Video_ID FROM Video_files WHERE OWNER=(%s) AND Path_To_Video=(%s);"
-        data = cursor.execute(query, (session["Username"], name))
+        query = "SELECT Video_ID FROM Video_files WHERE Path_To_Video='" + unquote(name) + "';"
+        warning(query)
+        data = cursor.execute(query)
         result = cursor.fetchone()
         if(result == None):
             return{ "id": -1 }
@@ -170,6 +169,14 @@ def logout():
         return render_template('index.html', error="Logged Out")
     else:
         return render_template('index.html', error="Invalid Credentials")
+
+#
+@app.route("/getVideo/<path:filename>", methods=['GET','POST'])
+def getVideo(filename):
+    if request.cookies.get("ID") == ID and "ID" in session:
+        return send_file(filename, as_attachment=False)
+    else:
+        return redirect('/landing')
 
 #
 if __name__ == "__main__":
