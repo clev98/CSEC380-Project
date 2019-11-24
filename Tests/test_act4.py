@@ -1,4 +1,4 @@
-import sys, requests, pytest, json
+import sys, requests, pytest, json, time
 
 #nested elses are disgusting.
 def checkValid():
@@ -31,6 +31,7 @@ def checkValid():
 def main_func():
     return checkValid()
 def test_server_online():
+    time.sleep(10)
     assert main_func() == True
 
 

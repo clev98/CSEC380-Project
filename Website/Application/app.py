@@ -24,7 +24,7 @@ db_connector = connector.connect(
     password="absolutely_totally_secure",
     database="Application"
 )
-db_connector.reconnect(attempts=9, delay=0)
+db_connector.reconnect(attempts=10, delay=5)
 
 
 cursor = db_connector.cursor(buffered=True)
