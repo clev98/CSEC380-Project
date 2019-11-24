@@ -1,9 +1,5 @@
 CREATE DATABASE IF NOT EXISTS Application;
-
-CREATE USER 'armtube'@'%' IDENTIFIED BY 'absolutely_totally_secure';
-GRANT ALL PRIVILEGES ON Application.* TO 'armtube'@'%';
-
-use Application;
+USE Application;
 
 CREATE TABLE User_Login
 (

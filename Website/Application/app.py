@@ -19,8 +19,8 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 #initialize database
 db_connector = connector.connect(
-    host="db",
-    user="armtube",
+    host="flask_db",
+    user="root",
     password="absolutely_totally_secure",
     database="Application"
 )

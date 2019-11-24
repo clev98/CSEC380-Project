@@ -28,10 +28,8 @@ def checkValid():
     return True
         
 
-def main_func():
+def main():
     return checkValid()
+
 def test_server_online():
     assert main_func() == True
-
-
-print(main_func())
